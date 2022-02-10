@@ -17,6 +17,8 @@ def draw_bounding_boxes(img, data, legend=True):
     OUTPUTS: 
         output -- <numpy.ndarray> edited input image with bounding boxes
     """
+    ######## Function doesn't seem to return any output, just plots
+
     from matplotlib.patches import Rectangle, Patch
 
     classes = pd.unique(data["class_name"])
@@ -25,13 +27,14 @@ def draw_bounding_boxes(img, data, legend=True):
     cmap = plt.cm.get_cmap("jet")
     color_ls = np.linspace(0,1,num=classes.size)
   
-  # draw bounding boxes
+    # draw bounding boxes
     fig, ax = plt.subplots(figsize=[6,4], dpi=100)
     ax.imshow(img)
     # ax.imshow(np.fliplr(np.flipud(img)))
     for i in range(data.shape[0]): 
     # for i in range(1):
         display(data)
+        ########## how does this work if classes is a list?
         class_num = np.squeeze(np.argwhere(data["class_name"][i]==classes))
         rect = Rectangle((data["x"][i],data["y"][i]),data["width"][i],data["height"][i],
                                     edgecolor=cmap(color_ls[class_num])[:3], 
@@ -64,7 +67,7 @@ def dataLoader():
     for d in dirs: 
         for f in glob.glob(os.path.join(data_dir,d,'*.csv')): 
             df = pd.read_csv(f, header=0, names = ["class_id", "class_name", "x", "y", "width", "height"])
-            df['file'] = str(f)
+            df['file'] = str(f)   ######### broadcasts the string to all entries?
             target_data.append(df)
     target_data = pd.concat(target_data, axis=0, ignore_index=True)
     
@@ -77,14 +80,19 @@ def birdCounts(target_data):
         target_data -- <pd.dataframe> dataframe with bounding boxes processed and aggregated
     OUTPUTS: 
     """
+    ########## For each class, compute the 'mean' of 'width' and the 'count' and 'mean' of 'height'
     bounding_box_data = target_data.groupby(['class_name']).agg({'width': ['mean'], 'height': ['mean', 'count']})
-
+    ########## This average area calculation probably incorrect
     bounding_box_data[('area',  'mean')] = bounding_box_data[( 'width',  'mean')] * bounding_box_data[('height',  'mean')]
 
     ### Bird Counts
     target_counts = target_data["class_name"].value_counts().sort_values(ascending=False)
     plt.figure(figsize=(13,7))
     print(np.log(target_counts.values))
+    ########## The barplot has bars that are horizontal, I believe
+    ########## target_counts.index is in iterable of the names? 
+    ########## target_counts.index.values is to access the names?
+    ########## target_counts.values are the count values?
     ax = sns.barplot(y=target_counts.index.values, x=target_counts.values, order=target_counts.index)
     ax.set_xlim(right = 1815)
     # Set tick font size
@@ -104,6 +112,7 @@ def birdPerPhoto(target_data):
         target_data -- <pd.dataframe> dataframe with bounding boxes processed and aggregated
     OUTPUTS: 
     """
+    ######### Produces df where for each file (image), the number of observations (birds) is counted
     by_file = target_data.groupby(["file"]).count()["class_id"]
     a = list(by_file)
     print(pd.Series(a).describe())
@@ -114,7 +123,7 @@ def birdPerPhoto(target_data):
     new_a = []
     for item in a:
         if item <= 20:
-            new_a.append("1 to 20")
+            new_a.append("1 to 20")   ########## I'm guessing it doesn't append if it already exists
             ok["1 to 20"] += 1
         elif item <= 40:
             new_a.append("21 to 40")
@@ -169,17 +178,18 @@ def birdExamples():
         if counter == 15:
             break
         for f in glob.glob(os.path.join(data_dir,d,'*.csv')): 
-            if counter == 15:
+            if counter == 15:    ########### Means an example has been found for all 15 birds
                 break
             df = pd.read_csv(f, header=0, names = ["class_id", "class_name", "x", "y", "width", "height"])
             for key, val in target_data.items():
                 if val == "" and key in list(df['class_name']):
                     # print(df.loc[df['class_name'] == key].head(1))
                     a = f
-                    a = a[:-3] + "JPG"
+                    a = a[:-3] + "JPG"   ########### a is now the name of the image file
                     df_pass = df.loc[df['class_name'] == key].head(1).reset_index(drop=True)
+                    ########### df_pass is a df for just one instance of the bird type "key"?
                     df_pass['class'] = df_pass['class_name']
-                    target_data[key] = (a, df_pass)
+                    target_data[key] = (a, df_pass)   ######### val is now a tuple
                     # print(df.loc[df['class_name'] == key].head(1))
                     print(counter, key, a)
                     counter += 1
@@ -193,10 +203,12 @@ def birdExamples():
 
     for k, v in target_data.items():
     #   print(v[1])
-        image = io.imread(v[0])
+        image = io.imread(v[0])   ########## v[0] is a, the name of the image file
         #print(image.shape)
 
+        ########## v[1] is the dataframe
         # print(v[1]["x"], v[1]["x"] + v[1]["width"], v[1]["y"], v[1]["y"] +  v[1]["height"])
+        ########## This comes from the x and y values in the df being the min x and min y of the box
         cropImage = image[int(v[1]["y"]):int(v[1]["y"]) + int(v[1]["height"]), int(v[1]["x"]):int(v[1]["x"] + v[1]["width"])]
     # print(cropImage.shape)
         plt.imshow(cropImage)
