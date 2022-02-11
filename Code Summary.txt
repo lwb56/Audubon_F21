@@ -268,5 +268,107 @@ cropping.py
 
 trainer.py
 
+    class WAndBWriter(EventWriter):
+        Not really sure what this is
+    
+    class ValidationLossHook(HookBase):
+        __init__(self, model, data_loader, eval_period=20):
+        _do_loss_eval(self): 
+        _get_loss(self, data):
+        after_step(self):
+    # Class for evaluating the loss of the model as it is trained
+    # Loss is reported is the mean of the batch size losses
+    
+    class Trainer(DefaultTrainer):
+        build_evaluator(cls, cfg, dataset_name, output_folder=None):
+        build_hooks(self):
+
+    class WAndBTrainer(DefaultTrainer):
+        build_evaluator(cls, cfg, dataset_name, output_folder=None):
+        build_hooks(self):
+
+    build_writers(self):
+    # Code is:
+        writers = super().build_writers()
+        writers.append(WAndBWriter())
+        return writers
+
 evaluation.py
     
+    class PrecisionRecallEvaluator(COCOEvaluator):
+        """
+        Evaluate all Precision-Recall metrics for instance detection obtained from detectron2 COCOEvalulator
+        """
+
+        __init__(self,dataset_name,output_dir=None):
+
+        evaluate(self, img_ids=None):
+            """
+            Args:
+                img_ids: a list of image IDs to evaluate on. Default to None for the whole dataset
+            Outputs: (see COCOEval API for details)
+                precisions  - [TxRxKxAxM] precision for every evaluation setting
+                recalls    - [TxKxAxM] max recall for every evaluation setting
+
+            """
+
+        _coco_eval_predictions(self, predictions, img_ids=None):
+
+    get_precisions_recalls(cfg, predictor, dataset_name):
+        """
+        get precisions and recalls outputted by PrecisionRecallEvaluator
+        INPUTS:
+            cfg -- detectron2 CfgNode
+            predictor -- detectron2 predictor
+            dataset_name -- registered dataset name to evaluate on
+        """
+        # Code is:
+            evaluator = PrecisionRecallEvaluator(dataset_name, output_dir=cfg.OUTPUT_DIR)
+            data_loader = build_detection_test_loader(cfg, dataset_name)
+            return inference_on_dataset(predictor.model, data_loader, evaluator)
+
+    plot_precision_recall(precisions, max_recalls, class_names, class_colors):
+        """
+        Plot precision-recall curves outputted by PrecisionRecallEvaluator
+        INPUTS:
+            precisions: [TxRxKxAxM] precision for every evaluation setting
+            max_recalls: [TxKxAxM] max recall for every evaluation setting
+            class_names: names of bird species registered.
+            class_colors: List of colors for corresponding to bird species
+        """
+    # Plots avg precision vs max_recall (meaning?), Precision-Recall Curve (IoU = 0.5), and Precision-Recall Curve (IoU = 0.75)
+    # Bug in line 148, test_precisions not defined
+
+    non_max_suppression_fast(df, overlap_thresh = 0.5):
+        """
+        Perform non-maximal supression for bounding boxes
+        Adapted from https://www.pyimagesearch.com/2015/02/16/faster-non-maximum-suppression-python/
+        INPUTS
+            df -- pandas dataframe containing bounding boxes
+            overlapThresh -- overlapping IoU threshold to be used for rejection (default: 0.5)
+        OUTPUT
+            df -- pandas dataframe containing bounding boxes after NMS
+        """
+    # Removes entries from df if their bounding boxes overlap by more than the threshold
+    # Bug: Looks like all are returned because pick appends all the indices
+    # Can't see how does calculates IoU ratio and how it removes redundant bounding boxes while
+    #   keeping one
+
+    evaluate_full_pipeline(eval_file_lst, predictor, species_map, raw_img_width, raw_img_height,
+                           crop_width, crop_height, sliding_size):
+        obj_dict = {'cnt_id': [], 'file_name': [], 'xmin': [], 'ymin': [], 'xmax': [], 'ymax': [],
+            'score': [], 'pred_cls': []}
+        for f in tqdm(eval_file_lst):
+            # stuff
+            output_df = pd.DataFrame(obj_dict)
+            # Four functions are created, then applied
+    # Doesn't look correctly written. obj_dict becomes a DataFrame in the first iteration, yet
+    #   it's converted at every loop. The four functions are also defined at every loop
+    # output_df is returned, which has had overlapping boundary boxes removed
+
+    class ConfusionMatrix(object):
+        __init__(self, num_classes: int, labels: list):
+        update(self, preds, labels):
+        summary(self):
+        plot(self):
+    # Added by us (Spring 22)

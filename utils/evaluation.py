@@ -11,11 +11,13 @@ from detectron2.evaluation import inference_on_dataset
 from detectron2.evaluation.coco_evaluation import COCOEvaluator
 from detectron2.data import build_detection_test_loader
 
+########### Added
 # import json
 # import torch
 # from torchvision import transforms, datasets
 # from tqdm import tqdm
 from prettytable import PrettyTable
+import pandas as pd
 # from torch import nn
 # import torch.nn.functional as F
 
@@ -144,7 +146,8 @@ def plot_precision_recall(precisions, max_recalls, class_names, class_colors):
         ax.plot(max_recall, avg_precision, color=class_colors[c_indx])
         precisions_iou50 = np.squeeze(precisions[0, :, c_indx, 0, -1])
         ax_iou50.plot(recall, precisions_iou50, color=class_colors[c_indx])
-        precisions_iou75 = np.squeeze(test_precisions[5, :, c_indx, 0, -1])
+        # precisions_iou75 = np.squeeze(test_precisions[5, :, c_indx, 0, -1])
+        precisions_iou75 = np.squeeze(precisions[5, :, c_indx, 0, -1])
         ax_iou75.plot(recall, precisions_iou75, color=class_colors[c_indx])
 
     ax.set(ylabel="Avg. Precision",
@@ -164,7 +167,7 @@ def plot_precision_recall(precisions, max_recalls, class_names, class_colors):
 
 def non_max_suppression_fast(df, overlap_thresh = 0.5):
     """
-    Perform non-maximal supression for bounding boxes
+    Perform non-maximum supression for bounding boxes
     Adapted from https://www.pyimagesearch.com/2015/02/16/faster-non-maximum-suppression-python/
     INPUTS
         df -- pandas dataframe containing bounding boxes
@@ -283,6 +286,7 @@ def evaluate_full_pipeline(eval_file_lst, predictor, species_map, raw_img_width,
     return output_df
 
 
+######### Added
 class ConfusionMatrix(object):
     def __init__(self, num_classes: int, labels: list):
         self.matrix = np.zeros((num_classes, num_classes))
@@ -290,6 +294,7 @@ class ConfusionMatrix(object):
         self.labels = labels
     
     # Update Matrix
+    # Rows are predictions and columns are true labels
     def update(self, preds, labels):
         for p, t in zip(preds, labels):
             self.matrix[p, t] += 1
