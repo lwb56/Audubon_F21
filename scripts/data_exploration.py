@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from skimage import io 
 import pandas as pd
 import seaborn as sns
-#%matplotlib inline
+%matplotlib inline
 
 def draw_bounding_boxes(img, data, legend=True):    
     """
